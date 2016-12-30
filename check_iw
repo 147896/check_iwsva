@@ -1,10 +1,10 @@
 #!/usr/bin/python
-## -- SCRIPT TEST HEALTH PROXY SERVERS, TEST DNS
+# SCRIPT PYTHON TEST HEALTH PROXY SERVERS, TEST DNS
 # VERIFY OUTSIDE IPADDRESS LINK AND NUMBERS CONNECTION
 # PORT LISTEN 8080 (IWSVA TREND MICRO) ESTABLISHED AND
-# CLOSE_WAIT TO MONITORING NAGIOS,	 		-- ##
-## -- AUTHOR: GABRIEL RIBAS - gabriel.ribass@gmail.com	-- ##
-## -- DATE: Nov 28 / 2016				-- ##
+# CLOSE_WAIT TO MONITORING NAGIOS, ZABBIX, ETC.
+
+# REMOTE CONNECTION WITH PARAMIKO SSH.
 
 import os
 import sys, getopt
@@ -20,26 +20,29 @@ for opt, arg in options:
    elif opt in ('-v', '--verbose'):
        verbose = True
 
-server,username, password = (server,'opmon', 'unimed@2016')
+# define credentials and connection information.
+server,username, password = (server,'youruserremote', 'yourpassremote')
 ssh = paramiko.SSHClient()
 
-
-#paramiko.util.log_to_file('iwsva.log')
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+# write known_hosts file. auto-check.
 ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
 
 ssh.connect(server,username=username, password=password)
 ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('/home/opmon/checkLinkSaida')
 
+# exit code when success.
 if ssh_stderr.channel.recv_exit_status() == 0:
    sys.stdout.write(ssh_stdout.read())
    sys.exit(0)
 
+# exit code when warning
 if ssh_stderr.channel.recv_exit_status() == 1:
    sys.stdout.write(ssh_stdout.read())
    sys.exit(1)
 
+# exit code when critical
 if ssh_stderr.channel.recv_exit_status() == 2:
    sys.stdout.write(ssh_stdout.read())
    sys.exit(2)
