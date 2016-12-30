@@ -30,7 +30,7 @@ ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
 
 ssh.connect(server,username=username, password=password)
-ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('/home/opmon/checkLinkSaida')
+ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('/path/remoteServerCheck') # remoteServerCheck file that will be called remotely
 
 # exit code when success.
 if ssh_stderr.channel.recv_exit_status() == 0:
