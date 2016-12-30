@@ -1,0 +1,61 @@
+#!/usr/local/bin/python
+import urllib2, sys, socket, os
+
+# urls netsol e meuip
+url = "http://www.meuip.com.br"
+
+get_system = socket.gethostname()
+
+
+# funcao para mandar a url referente a netsol ou meuip, 
+# para descobrirmos com qual ip estamos saindo.
+def tbxEbt(url):
+   print("outside %s " %(url))
+   return
+
+# numero de conexoes estabelecidas na porta 8080 (proxy)
+def established(port):
+
+   lsof = os.popen("sudo lsof -i:%s | grep ESTABLISHED" %(port))
+   lines = len(lsof.readlines())
+   lsof.close()
+   return lines
+
+def close_wait(port):
+
+   lsof = os.popen("sudo lsof -i:%s | grep CLOSE_WAIT" %(port))
+   lines = len(lsof.readlines())
+   lsof.close()
+   return lines
+
+def dns_resolver(host):
+   try:
+      resolver = 'DNS_OK ' + socket.gethostbyname(host)
+   except:
+      resolver = "::DNS Failed::"
+   return resolver
+
+count_established = established(8080)
+count_close_wait = close_wait(8080)
+status_dns = dns_resolver(url)
+
+# verificando se os sites estao acessiveis.
+
+try:
+   _Request = urllib2.Request(url)
+   response = urllib2.urlopen(_Request)
+   _Read = response.read()
+   
+except:
+   print("Erro ao tentar acessar um site -- %s | DNS=%s;1;2;0;0 ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(dns_resolver(url),2,count_established,count_close_wait))
+   sys.exit(2)
+
+if ("telbrax" in _Read):
+
+   print("Telbrax (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
+   sys.exit(0)
+
+elif ("embratel" in _Read):
+
+   print("Embratel (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
+   sys.exit(1)
