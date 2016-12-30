@@ -1,19 +1,18 @@
 #!/usr/local/bin/python
 import urllib2, sys, socket, os
 
-# urls netsol e meuip
+# url myIP
 url = "http://www.meuip.com.br"
 
+# hostname server
 get_system = socket.gethostname()
 
-
-# funcao para mandar a url referente a netsol ou meuip, 
-# para descobrirmos com qual ip estamos saindo.
+# function to identify internet link outside.
 def tbxEbt(url):
    print("outside %s " %(url))
    return
 
-# numero de conexoes estabelecidas na porta 8080 (proxy)
+# connection number ESTABLISHED port deamon iwss (Trend Micro) example.: port 8080
 def established(port):
 
    lsof = os.popen("sudo lsof -i:%s | grep ESTABLISHED" %(port))
@@ -21,6 +20,7 @@ def established(port):
    lsof.close()
    return lines
 
+# connection number CLOSE_WAIT port deamon iwss (Trend Micro) example.: port 8080
 def close_wait(port):
 
    lsof = os.popen("sudo lsof -i:%s | grep CLOSE_WAIT" %(port))
@@ -28,6 +28,7 @@ def close_wait(port):
    lsof.close()
    return lines
 
+# test dns resolver
 def dns_resolver(host):
    try:
       resolver = 'DNS_OK ' + socket.gethostbyname(host)
@@ -35,27 +36,30 @@ def dns_resolver(host):
       resolver = "::DNS Failed::"
    return resolver
 
+# call functions
 count_established = established(8080)
 count_close_wait = close_wait(8080)
 status_dns = dns_resolver(url)
 
-# verificando se os sites estao acessiveis.
-
+# test access website to identify outside link
 try:
    _Request = urllib2.Request(url)
    response = urllib2.urlopen(_Request)
    _Read = response.read()
-   
+
+# return exit code 2. CRITICAL
 except:
-   print("Erro ao tentar acessar um site -- %s | DNS=%s;1;2;0;0 ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(dns_resolver(url),2,count_established,count_close_wait))
+   print("Error try to access website -- %s | DNS=%s;1;2;0;0 ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(dns_resolver(url),2,count_established,count_close_wait))
    sys.exit(2)
 
-if ("telbrax" in _Read):
+# find string provider internet link
+if ("your provider ISP" in _Read):
 
-   print("Telbrax (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
+   print("<your first provider ISP show here> (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
    sys.exit(0)
 
-elif ("embratel" in _Read):
+# find string provider internet link
+elif ("your second provider ISP" in _Read):
 
-   print("Embratel (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
+   print("<your second provider ISP show here> (%s) %s| ESTABLISHED(8080)=%s CLOSE_WAIT(8080)=%s" %(get_system,status_dns,count_established,count_close_wait))
    sys.exit(1)
