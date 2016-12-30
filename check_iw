@@ -1,0 +1,47 @@
+#!/usr/bin/python
+## -- SCRIPT TEST HEALTH PROXY SERVERS, TEST DNS
+# VERIFY OUTSIDE IPADDRESS LINK AND NUMBERS CONNECTION
+# PORT LISTEN 8080 (IWSVA TREND MICRO) ESTABLISHED AND
+# CLOSE_WAIT TO MONITORING NAGIOS,	 		-- ##
+## -- AUTHOR: GABRIEL RIBAS - gabriel.ribass@gmail.com	-- ##
+## -- DATE: Nov 28 / 2016				-- ##
+
+import os
+import sys, getopt
+import paramiko
+
+verbose = False
+
+options, remainder = getopt.getopt(sys.argv[1:], 's:v', ['server', 'verbose'])
+
+for opt, arg in options:
+   if opt in ('-s', '--server'):
+       server = arg
+   elif opt in ('-v', '--verbose'):
+       verbose = True
+
+server,username, password = (server,'opmon', 'unimed@2016')
+ssh = paramiko.SSHClient()
+
+
+#paramiko.util.log_to_file('iwsva.log')
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
+
+ssh.connect(server,username=username, password=password)
+ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('/home/opmon/checkLinkSaida')
+
+if ssh_stderr.channel.recv_exit_status() == 0:
+   sys.stdout.write(ssh_stdout.read())
+   sys.exit(0)
+
+if ssh_stderr.channel.recv_exit_status() == 1:
+   sys.stdout.write(ssh_stdout.read())
+   sys.exit(1)
+
+if ssh_stderr.channel.recv_exit_status() == 2:
+   sys.stdout.write(ssh_stdout.read())
+   sys.exit(2)
+
+ssh.close()
